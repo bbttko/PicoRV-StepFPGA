@@ -7,7 +7,7 @@
 
 
 #define IRQ0_TIMER		0
-#define IRQ20_BUTTON0	20
+#define IRQ20_BUTTONS	20
 #define IRQ21			21
 
 
