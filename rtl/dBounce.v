@@ -1,4 +1,13 @@
-module xBitDebounce (
+/*
+ *============================
+ * debounce
+ * 
+ * btko - Aug'22
+ *============================
+ */
+ 
+ // xBitDebounce: create dBounce bus of width NUMBITS
+ module xBitDebounce (
 		input wire clock,
 		input wire [NUMBITS-1:0] i_db,
 		output wire [NUMBITS-1:0] o_db
@@ -19,20 +28,22 @@ endmodule
 
 
 
-
-
+// dBounce
+// low pass filter i_db need to be stable for a certain *delay* before o_db follows.
+// 	*delay* = i_clk frequency / NUMCYCLES
+//		DEFAULT_STATE = starting, idle polarity
 module dBounce(
 		input i_clk, i_db,
 		output o_db
 	);
 	parameter NUMCYCLES = 50_000;		// how many cycles at least >=1, cannot be 0
+	parameter DEFAULT_STATE = 1'b1;	// default pin state
 	
 	localparam NUMBITS = $clog2(NUMCYCLES)+1;		// number of bits+1 to count NUMCYCLES 
 	localparam MAX_COUNT = {1'b1,{NUMBITS{1'b0}}} + NUMCYCLES;	
 	localparam MIN_COUNT = {1'b1,{NUMBITS{1'b0}}} - (NUMCYCLES);
 	
-	reg [NUMBITS:0] count = {1'b1,{(NUMBITS-1){1'b0}} };		// counter, default at midpoint 
-	
+	reg [NUMBITS:0] count = { NUMBITS{DEFAULT_STATE} };		// counter, init default based on DEFAULT_STATE
 	
 	// increment count if input value = 1 and hasn't reached max
 	// decrement count if input value = 0 and hasn't reached min, 
@@ -46,38 +57,4 @@ module dBounce(
 	assign o_db = count[NUMBITS] ? 1 : 0;
 endmodule
 
-
-
-
-///*
-// * debounce old
-// */
-//module dBounce (
-//		input i_clk, i_db,
-//		output o_db
-//	);
-//	parameter CLOCK = 50_000_000;	// 50 MHz
-//	parameter CLOCKDLY = 1;	
-//
-//	parameter ENDCOUNT = CLOCK/CLOCKDLY;
-//	integer count = 0;
-//
-//	reg prev_pin, out_pin;
-//	initial out_pin = i_db;
-//	initial prev_pin = i_db;
-//
-//	always @(posedge i_clk) begin
-//		if (prev_pin != i_db) begin
-//			count = 0;
-//			prev_pin = i_db;
-//		end
-//		
-//		if (count != ENDCOUNT) begin
-//			count = count + 1;
-//			out_pin = prev_pin;
-//		end
-//		
-//    end
-//    assign o_db = out_pin;
-//endmodule
 

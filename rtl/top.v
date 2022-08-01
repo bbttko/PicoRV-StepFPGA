@@ -18,7 +18,7 @@ module top (
 		output [7:0] LEDS,
 		output [2:0] RGB1, RGB2,
 		output [8:0] SEG1, SEG2,
-		input  [3:0] SWITCH,		// not enabled
+		input  [3:0] SW,		// not enabled
 		output 		 TXD,
 		input 		 RXD
 	);
@@ -76,12 +76,13 @@ module top (
 		button_ready = mem_valid && !mem_ready && (mem_addr == BUTTON_ADDR);
 
 	wire NandButton = ~&dBUTTON;
-	always @(posedge clock_main) irq[20] <= NandButton;		// during interrupt
+//	always @(posedge clock_main) irq[20] <= NandButton;		// during interrupt
 	
 	always @(posedge clock_main) begin
-		if (!locked) 
+		if (!locked) begin
 			button_reg <= 32'h0;
-		else begin
+		end else begin
+			irq[20] <= NandButton;
 			if (NandButton)
 				button_reg <= {{29{1'b0}}, ~dBUTTON};
 			else if (button_ready) begin
