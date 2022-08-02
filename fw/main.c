@@ -1,15 +1,16 @@
 /*
-
-// to do
-3.  custom interrupt .. uart rx??
-*/
+ *
+ * PicoRV StepFPGA demo fw
+ *
+ * btko - Aug'22
+ */
 #include "main.h"
 #include "irq.h"
 #include "print.h"
 
 extern void delay_1s();
 
-char greet[] = "\n\r__RiscV StepFPGA__\n\rMax10 10M08SAM153C8G\n\r";
+char greet[] = "\n\r\n\r__RiscV StepFPGA__\n\rMax10 10M08SAM153C8G\n\r";
 
 uint32_t val = 0;
 uint8_t timer_enabled = 0;
@@ -40,6 +41,7 @@ void irq_20_handler(void) {
 void menu() {
 	print_str(greet);
 	print_str(" [a or 'space'] - printing this message\n\r");
+	print_str(" [s] - read switch status\n\r");
 	print_str(" [t] - timer interrupt to count leds (toggle)\n\r");
 	print_str(" [r,g,b,o] - Red, Green, Blue, turn Off leds\n\r");
 	print_str(" others - echo command & ascii to 7-segment display\n\r");
@@ -98,6 +100,11 @@ int main() {
 					rgb2 = RGB_OFF;
 					break;
 					
+				case 's':
+					print_str("switch: ");
+					print_hex(sw, 2);
+					break;
+					
 				default:
 					uart_tx = rx_temp;	// echo
 					segment1 = rx_temp & 0x0F;
@@ -109,8 +116,5 @@ int main() {
 	}
 	return 0;
 }
-//  main end ===============================================================================
-
-
 
 

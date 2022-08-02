@@ -8,11 +8,7 @@ PicoRV on StepFPGA
 	- outputs: 2x 7-seg and 8-bit leds
 	- input: 4x switches
 
-todo:
-	* switch enable in top.v
-	* remove debugs from main.c
-	* connection diagram
-
+	
 to use:
 	pre-req
 		riscv32 cross compiler 
@@ -27,6 +23,12 @@ to use:
 
 reference/resources
 	StepFPGA info -> https://www.stepfpga.com/doc/step-max10
+
+
+TODO:
+	* connection diagram
+
+
 
 	
 btko - Aug 2022

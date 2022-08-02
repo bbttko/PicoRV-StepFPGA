@@ -28,6 +28,8 @@
 // button
 #define buttons		(* (volatile uint32_t *) 	0x02005000)
 
+// switch
+#define sw 			(* (volatile uint32_t *) 	0x02008000)
 
 /* -- not used --
 #define spimem (* (volatile uint32_t *) 	0x00100000)

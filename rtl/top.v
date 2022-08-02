@@ -3,10 +3,7 @@
  * Button 3 = async reset
  * TXD/RXD N,8,1 115200 connected to external CP2102
  * enabled interrupt for Buttons
- *
- *
- * Switches not yet enabled
- *
+ * Switches: direct connect
  *
  * -- btko Jul-22
  */
@@ -56,40 +53,7 @@ module top (
 		.locked	(locked)
 	);
 	
-	// ========================= Button IRQ =========================
-	(* keep *) wire [2:0] dBUTTONn;
 
-	xBitDebounce #(.NUMBITS (3)) db3 (
-		.clock	(clock_main),
-		.i_db		(BUTTONn[2:0]),
-		.o_db		(dBUTTONn)
-	);
-
-	reg [31:0] button_reg;
-	reg button_ready;
-	always @(posedge clock_main)
-		button_ready = mem_valid && !mem_ready && (mem_addr == BUTTON_ADDR);
-
-	wire NandButton = ~&dBUTTONn;
-//	always @(posedge clock_main) irq[20] <= NandButton;		// during interrupt
-	
-	always @(posedge clock_main) begin
-		if (!locked) begin
-			button_reg <= 32'h0;
-		end else begin
-			irq[20] <= NandButton;
-			if (NandButton)
-				button_reg <= {{29{1'b0}}, ~dBUTTONn};
-			else if (button_ready) begin
-				if (mem_wstrb[0]) button_reg[7:0] <= 0;
-				if (mem_wstrb[1]) button_reg[15:8] <= 0;
-				if (mem_wstrb[2]) button_reg[23:16] <= 0;
-				if (mem_wstrb[3]) button_reg[31:24] <= 0;
-			end
-		end
-	end
-
-	
 	// ========================= CPU =========================
 	(* keep *) wire mem_valid, mem_ready, mem_instr;
 	wire [31:0] mem_addr;
@@ -194,7 +158,7 @@ module top (
 	assign LEDSn = ~ledreg[7:0];	// reverse logic
 
 
-	// ========================= 7-segment 1 & 2 =========================
+	// ========================= 7-segment x2 =========================
 	// addr1 	: [2000_2000]
 	// addr2 	: [2000_2004]
 	reg seg1_ready, seg2_ready;
@@ -224,7 +188,7 @@ module top (
 		end	
 	end
 
-	segment_ext seg (
+	sevenSeg seg (
 		.disable1 	(seg1_disable),
 		.disable2 	(seg2_disable),
 		.seg_data_1	(seg1reg),
@@ -233,7 +197,9 @@ module top (
 		.segment_led_2	(SEG2n)
 	);
 
-	// ========================= RGB led 1 & 2 =========================
+	// ========================= RGB led x2  =========================
+	// addr1 	: [0200_3000]
+	// addr2		: [0200_3004]
 	reg rgb1_ready, rgb2_ready;
 	reg [2:0] rgb1reg, rgb2reg;
 	always @(posedge clock_main) begin
@@ -255,6 +221,8 @@ module top (
 
 
 	// ========================= UART =========================
+	// DATA addr 	: [0200_4000]
+	// DIV addr		: [0200_4008]
 
 	// divisor register
 	wire uart_div_ready = mem_valid && mem_addr == UART_DIV_ADDR;
@@ -331,8 +299,50 @@ module top (
 		.reg_dat_do		( uart_dat_do		)
 	);
 `endif
-	
 
+
+	
+	// ========================= Button (IRQ) x3, other button is 'reset' ==========
+	// addr1 	: [0200_5000]
+	(* keep *) wire [2:0] dBUTTONn;
+
+	xBitDebounce #(.NUMBITS (3)) db3 (
+		.clock	(clock_main),
+		.i_db		(BUTTONn[2:0]),
+		.o_db		(dBUTTONn)
+	);
+
+	reg [31:0] button_reg;
+	reg button_ready;
+	always @(posedge clock_main)
+		button_ready = mem_valid && !mem_ready && (mem_addr == BUTTON_ADDR);
+
+	wire NandButton = ~&dBUTTONn;
+	//	always @(posedge clock_main) irq[20] <= NandButton;		// during interrupt
+
+	always @(posedge clock_main) begin
+		if (!locked) begin
+			button_reg <= 32'h0;
+		end else begin
+			irq[20] <= NandButton;		// irq when not in reset
+			if (NandButton)
+				button_reg <= {{29{1'b0}}, ~dBUTTONn};
+			else if (button_ready) begin
+				if (mem_wstrb[0]) button_reg[7:0] <= 0;
+				if (mem_wstrb[1]) button_reg[15:8] <= 0;
+				if (mem_wstrb[2]) button_reg[23:16] <= 0;
+				if (mem_wstrb[3]) button_reg[31:24] <= 0;
+			end
+		end
+	end
+
+	
+	// ========================= Switch x4 =========================
+	// addr1 	: [0200_5000]
+	reg sw_ready;
+	always @(posedge clock_main) 
+		sw_ready = mem_valid && !mem_ready && mem_addr == SWITCH_ADDR;
+	
 	// ========================= mem_ready & mem_rdata selector =========================
 
 	assign mem_ready = rom_ready || ram_ready || 
@@ -340,6 +350,7 @@ module top (
 							seg1_ready || seg2_ready ||
 							rgb1_ready || rgb2_ready ||
 							button_ready ||
+							sw_ready ||
 							uart_div_ready ||
 							uart_data_ready && !uart_dat_wait;
 							
@@ -351,6 +362,7 @@ module top (
 								rgb1_ready ? {29'h0, rgb1reg} :
 								rgb2_ready ? {29'h0, rgb2reg} :
 								button_ready ? button_reg :
+								sw_ready ? {28'h0, SW} :
 								uart_div_ready ? uart_div_reg_do :
 								uart_data_ready ? uart_dat_do :
 								32'h0000_0000;

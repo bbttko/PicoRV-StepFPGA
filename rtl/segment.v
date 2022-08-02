@@ -1,41 +1,35 @@
 /*
- * StepFPGA 7-segment display
+ *============================
+ * 7-segment display
+ * 
+ * btko - Aug'22
+ *============================
  */
-module segment_ext (
-		input	disable1,
-		input	disable2,
-		input  wire [4:0] seg_data_1,
-		input  wire [4:0] seg_data_2,
-		output wire [8:0] segment_led_1,  
-		output wire [8:0] segment_led_2
+
+//=======================
+//2x 7-segment display for StepFPGA
+//=======================
+module sevenSeg (
+		input	wire disable1, disable2,
+		input  wire [4:0] seg_data_1, seg_data_2,
+		output wire [8:0] segment_led_1, segment_led_2
 	);
 	
-	a_segment s0 (
-		.dis		(disable1),
-		.data		(seg_data_1),
-		.segment_led	(segment_led_1)
-	);
-	
-	a_segment s1 (
-		.dis	(disable2),
-		.data		(seg_data_2),
-		.segment_led	(segment_led_2)
-	);
+	a_segment s0 ( .dis(disable1), .data(seg_data_1),  .segment_led(segment_led_1) );
+	a_segment s1 ( .dis(disable2), .data(seg_data_2),  .segment_led(segment_led_2) );
 endmodule
 
 
-/*
-==============================
-	__ a single segment __
-	
-	input
-		dis = 1: blank display
-		data[4] = decimal point
-		data[3:0] = 0 ~ F
-	output
-		segment_led connects to 7-segment display
-==============================
- */
+//==============================
+//	__ a single segment __
+//	
+//	input
+//		dis = 1: blank display
+//		data[4] = decimal point
+//		data[3:0] = 0 ~ F
+//	output
+//		segment_led connects to 7-segment display
+//==============================
 module a_segment (
 		input wire dis,
 		input wire [4:0] data,
@@ -63,7 +57,3 @@ module a_segment (
 	end
 	assign segment_led = dis ? 8'h0 : {data[4], seg[data[3:0]]};
 endmodule
-
-
-
-
