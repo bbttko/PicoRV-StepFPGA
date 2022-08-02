@@ -1,7 +1,6 @@
 # riscv compilation makefile
 
-PROJECT_NAME	:= StepPicoRV
-
+PROJECT_NAME	:= PicoRVStepFPGA
 
 ifdef OS
 	RM = @del
@@ -23,12 +22,8 @@ OBJDUMP:=	$(CROSS_COMPILE)objdump
 SIZE:=		$(CROSS_COMPILE)size
 TARGET:=	main
 CCFLAGS:=	-march=rv32id -Wl,-Bstatic,-T,sections.lds,--strip-debug -ffreestanding -nostdlib
-#CCFLAGS:=	-Wl,-Bstatic,-T,sections.lds,--strip-debug -ffreestanding -nostdlib -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti
-#ASFLAGS:=	-march=rv32id  -Wa,-adhln -g --save-temps -fno-asynchronous-unwind-tables 
-#ASFLAGS:=	-march=rv32id  -Wa,-adhln -g -fpic -fno-asynchronous-unwind-tables 
 ASFLAGS:=	-march=rv32id  -Wa,-adhln -g -fno-asynchronous-unwind-tables 
 DEPS:=		$(TARGET).c start.S irq.c print.c
-#DEPS:=		start.S irq.c $(TARGET).c 
 CLEANTARGET:= elf out bin lst mif o
 B2MIF	:= $(TOOLS_DIR)bin2mif.py
 
