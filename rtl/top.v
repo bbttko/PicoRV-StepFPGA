@@ -14,11 +14,11 @@
 `default_nettype none
 module top (
 		input 		 clock,	// 12MHz
-		input  [3:0] BUTTON,	// active low
-		output [7:0] LEDS,
-		output [2:0] RGB1, RGB2,
-		output [8:0] SEG1, SEG2,
-		input  [3:0] SW,		// not enabled
+		input  [3:0] BUTTONn,
+		output [7:0] LEDSn,
+		output [2:0] RGB1n, RGB2n,
+		output [8:0] SEG1n, SEG2n,
+		input  [3:0] SW,
 		output 		 TXD,
 		input 		 RXD
 	);
@@ -30,44 +30,39 @@ module top (
 	localparam RAM_ADDR		=	32'h0000_1000;
 	localparam RAM_ADDR_END	=	32'h0000_13ff;
 
-	
-	localparam LEDS_ADDR			=	32'h0200_0000;
-	
-	localparam SEGMENT1_ADDR	=	32'h0200_2000;
-	localparam SEGMENT2_ADDR	=	32'h0200_2004;
-	
+	localparam LEDS_ADDR		=	32'h0200_0000;
+	localparam SEG1_ADDR		=	32'h0200_2000;
+	localparam SEG2_ADDR		=	32'h0200_2004;
 	localparam RGB1_ADDR		=	32'h0200_3000;
 	localparam RGB2_ADDR		=	32'h0200_3004;
-	
 	localparam UART_DAT_ADDR = 32'h0200_4000;		// for both R & W
 	localparam UART_DIV_ADDR = 32'h0200_4008;
-	
 	localparam BUTTON_ADDR	=	32'h0200_5000;
+	localparam SWITCH_ADDR	=	32'h0200_8000;
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	
 	localparam RESET_ADDR	=	ROM_ADDR;
 	localparam IRQ_ADDR		=	32'h0000_0008;		// irq table.. in start.s
 	localparam STACK_ADDR	=	RAM_ADDR_END+1;
-//	localparam MIF_FILE		= "./fw/main.mif";
 
 	// ========================= PLL =========================
 	(* keep *) wire clock_main;
 	(* keep *) wire locked;
 	myPLL pll (
-		.areset	(!BUTTON[3]),		// Button3 = reset (closest to decimal point / pin 17)
+		.areset	(!BUTTONn[3]),		// Button3 = reset (closest to decimal point / pin 17)
 		.inclk0	(clock),				// 12 MHz
 		.c0		(clock_main),		// 50 MHz
 		.locked	(locked)
 	);
 	
 	// ========================= Button IRQ =========================
-	(* keep *) wire [2:0] dBUTTON;
+	(* keep *) wire [2:0] dBUTTONn;
 
 	xBitDebounce #(.NUMBITS (3)) db3 (
 		.clock	(clock_main),
-		.i_db		(BUTTON[2:0]),
-		.o_db		(dBUTTON)
+		.i_db		(BUTTONn[2:0]),
+		.o_db		(dBUTTONn)
 	);
 
 	reg [31:0] button_reg;
@@ -75,7 +70,7 @@ module top (
 	always @(posedge clock_main)
 		button_ready = mem_valid && !mem_ready && (mem_addr == BUTTON_ADDR);
 
-	wire NandButton = ~&dBUTTON;
+	wire NandButton = ~&dBUTTONn;
 //	always @(posedge clock_main) irq[20] <= NandButton;		// during interrupt
 	
 	always @(posedge clock_main) begin
@@ -84,7 +79,7 @@ module top (
 		end else begin
 			irq[20] <= NandButton;
 			if (NandButton)
-				button_reg <= {{29{1'b0}}, ~dBUTTON};
+				button_reg <= {{29{1'b0}}, ~dBUTTONn};
 			else if (button_ready) begin
 				if (mem_wstrb[0]) button_reg[7:0] <= 0;
 				if (mem_wstrb[1]) button_reg[15:8] <= 0;
@@ -144,7 +139,7 @@ module top (
 //		.operation_mode	("SINGLE_PORT"),
 //		.width_a				(32),
 //		.widthad_a			($clog2(1024)),
-//		.init_file			(MIF_FILE)
+//		.init_file			("./fw/main.mif")
 //	) rom (
 //		.clock0		(clock_main),
 //		.address_a	(mem_addr[11:2]),
@@ -196,7 +191,7 @@ module top (
 			if (mem_wstrb[3]) ledreg[31:24] <= mem_wdata[31:24];
 		end
 	end
-	assign LEDS = ~ledreg[7:0];	// reverse logic
+	assign LEDSn = ~ledreg[7:0];	// reverse logic
 
 
 	// ========================= 7-segment 1 & 2 =========================
@@ -207,8 +202,8 @@ module top (
 	reg seg1_disable, seg2_disable;
 	
 	always @(posedge clock_main) begin
-		seg1_ready <= mem_valid && !mem_ready && mem_addr == SEGMENT1_ADDR;
-		seg2_ready <= mem_valid && !mem_ready && mem_addr == SEGMENT2_ADDR;
+		seg1_ready <= mem_valid && !mem_ready && mem_addr == SEG1_ADDR;
+		seg2_ready <= mem_valid && !mem_ready && mem_addr == SEG2_ADDR;
 	end
 
 	always @(posedge clock_main) begin
@@ -218,11 +213,11 @@ module top (
 			seg1_disable <= 1;
 			seg2_disable <= 1;
 		end else begin
-			if (mem_valid && !mem_ready && mem_wstrb == 4'hf && mem_addr == SEGMENT1_ADDR) begin
+			if (mem_valid && !mem_ready && mem_wstrb == 4'hf && mem_addr == SEG1_ADDR) begin
 				seg1reg <= mem_wdata[4:0];
 				seg1_disable <= mem_wdata[5];
 			end
-			if (mem_valid && !mem_ready && mem_wstrb == 4'hf && mem_addr == SEGMENT2_ADDR) begin
+			if (mem_valid && !mem_ready && mem_wstrb == 4'hf && mem_addr == SEG2_ADDR) begin
 				seg2reg <= mem_wdata[4:0];
 				seg2_disable <= mem_wdata[5];
 			end
@@ -234,8 +229,8 @@ module top (
 		.disable2 	(seg2_disable),
 		.seg_data_1	(seg1reg),
 		.seg_data_2	(seg2reg),
-		.segment_led_1 (SEG1),
-		.segment_led_2	(SEG2)
+		.segment_led_1 (SEG1n),
+		.segment_led_2	(SEG2n)
 	);
 
 	// ========================= RGB led 1 & 2 =========================
@@ -255,8 +250,8 @@ module top (
 			if (mem_valid && !mem_ready && mem_addr == RGB2_ADDR && mem_wstrb[0] == 1)  rgb2reg <= mem_wdata[2:0];
 		end
 	end
-	assign RGB1 = rgb1reg;
-	assign RGB2 = rgb2reg;
+	assign RGB1n = rgb1reg;
+	assign RGB2n = rgb2reg;
 
 
 	// ========================= UART =========================

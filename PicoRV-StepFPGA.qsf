@@ -46,7 +46,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
-set_location_assignment PIN_N15 -to LEDS[0]
+set_location_assignment PIN_N15 -to LEDS[0] -comment "leds are active low"
 set_location_assignment PIN_N14 -to LEDS[1]
 set_location_assignment PIN_M14 -to LEDS[2]
 set_location_assignment PIN_M12 -to LEDS[3]
@@ -56,18 +56,18 @@ set_location_assignment PIN_L11 -to LEDS[6]
 set_location_assignment PIN_K11 -to LEDS[7]
 set_location_assignment PIN_M4 -to TXD -comment GPIO_0
 set_location_assignment PIN_P3 -to RXD -comment GPIO_1
-set_location_assignment PIN_J5 -to clock
-set_location_assignment PIN_J9 -to BUTTON[0] -comment "marked K1, near pin 18"
+set_location_assignment PIN_J5 -to clock -comment 12MHz
+set_location_assignment PIN_J9 -to BUTTON[0] -comment "marked K1, near pin 18, active low"
 set_location_assignment PIN_K14 -to BUTTON[1] -comment K2
 set_location_assignment PIN_J11 -to BUTTON[2] -comment K3
 set_location_assignment PIN_J14 -to BUTTON[3] -comment "K4 near pin 17"
-set_location_assignment PIN_G15 -to RGB1[0] -comment RED
+set_location_assignment PIN_G15 -to RGB1[0] -comment "RED, active low"
 set_location_assignment PIN_E15 -to RGB1[1] -comment GREEN
 set_location_assignment PIN_E14 -to RGB1[2] -comment BLUE
 set_location_assignment PIN_C15 -to RGB2[0] -comment RED
 set_location_assignment PIN_C14 -to RGB2[1] -comment GREEN
 set_location_assignment PIN_D12 -to RGB2[2] -comment BLUE
-set_location_assignment PIN_E1 -to SEG2[0]
+set_location_assignment PIN_E1 -to SEG2[0] -comment "active low"
 set_location_assignment PIN_D2 -to SEG2[1]
 set_location_assignment PIN_K2 -to SEG2[2]
 set_location_assignment PIN_J2 -to SEG2[3]
@@ -76,7 +76,7 @@ set_location_assignment PIN_F5 -to SEG2[5]
 set_location_assignment PIN_G5 -to SEG2[6]
 set_location_assignment PIN_L1 -to SEG2[7]
 set_location_assignment PIN_E2 -to SEG2[8]
-set_location_assignment PIN_A3 -to SEG1[0]
+set_location_assignment PIN_A3 -to SEG1[0] -comment "active low"
 set_location_assignment PIN_A2 -to SEG1[1]
 set_location_assignment PIN_P2 -to SEG1[2]
 set_location_assignment PIN_P1 -to SEG1[3]
