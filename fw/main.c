@@ -103,6 +103,7 @@ int main() {
 				case 's':
 					print_str("switch: ");
 					print_hex(sw, 2);
+					print_str("\n\r");
 					break;
 					
 				default:

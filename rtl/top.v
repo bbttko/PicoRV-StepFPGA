@@ -312,7 +312,8 @@ module top (
 		.o_db		(dBUTTONn)
 	);
 
-	reg [31:0] button_reg;
+//	reg [31:0] button_reg;
+	reg [2:0] button_reg;
 	reg button_ready;
 	always @(posedge clock_main)
 		button_ready = mem_valid && !mem_ready && (mem_addr == BUTTON_ADDR);
@@ -322,16 +323,18 @@ module top (
 
 	always @(posedge clock_main) begin
 		if (!locked) begin
-			button_reg <= 32'h0;
+			button_reg <= 0;
 		end else begin
 			irq[20] <= NandButton;		// irq when not in reset
 			if (NandButton)
-				button_reg <= {{29{1'b0}}, ~dBUTTONn};
+//				button_reg <= {{29{1'b0}}, ~dBUTTONn};
+				button_reg <= ~dBUTTONn;
 			else if (button_ready) begin
-				if (mem_wstrb[0]) button_reg[7:0] <= 0;
-				if (mem_wstrb[1]) button_reg[15:8] <= 0;
-				if (mem_wstrb[2]) button_reg[23:16] <= 0;
-				if (mem_wstrb[3]) button_reg[31:24] <= 0;
+				if (mem_wstrb[0]) button_reg <= 0;
+//				if (mem_wstrb[0]) button_reg[7:0] <= 0;
+//				if (mem_wstrb[1]) button_reg[15:8] <= 0;
+//				if (mem_wstrb[2]) button_reg[23:16] <= 0;
+//				if (mem_wstrb[3]) button_reg[31:24] <= 0;
 			end
 		end
 	end
@@ -361,7 +364,8 @@ module top (
 								seg2_ready ? {27'h0, seg2reg} :
 								rgb1_ready ? {29'h0, rgb1reg} :
 								rgb2_ready ? {29'h0, rgb2reg} :
-								button_ready ? button_reg :
+//								button_ready ? button_reg :
+								button_ready ? {29'h0,button_reg} :
 								sw_ready ? {28'h0, SW} :
 								uart_div_ready ? uart_div_reg_do :
 								uart_data_ready ? uart_dat_do :
