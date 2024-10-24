@@ -16,6 +16,10 @@ else
 	PYTHON = python3
 endif
 
+ifeq ($(shell uname), MINGW64_NT-10.0-22621)
+	RM = rm -f
+endif
+
 CC:=		$(CROSS_COMPILE)gcc
 OBJCOPY:=	$(CROSS_COMPILE)objcopy
 OBJDUMP:=	$(CROSS_COMPILE)objdump
